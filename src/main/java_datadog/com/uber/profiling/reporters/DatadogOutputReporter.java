@@ -49,7 +49,7 @@ public class DatadogOutputReporter implements Reporter {
         }
 
         for (String staticMetric: statics){
-            String[] keyValue = staticMetric.split("=");
+            String[] keyValue = staticMetric.split(":");
             individualMetrics.add(new AbstractMap.SimpleEntry<>(keyValue[0], Double.valueOf(keyValue[1])));
         }
 
