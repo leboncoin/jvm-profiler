@@ -1,6 +1,7 @@
 package com.uber.profiling.reporters;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,6 +20,7 @@ public class DatadogOutputReporter implements Reporter {
     private int port = 8125;
     private String[] tags = new String[] {};
     private String[] statics = new String[] {};
+    private Set<String> filters = new HashSet();
 
     @Override
     public void report(String profilerName, Map<String, Object> metrics) {
@@ -31,6 +33,13 @@ public class DatadogOutputReporter implements Reporter {
             String key = entry.getKey();
             Object value = entry.getValue();
 
+
+            if (!filters.isEmpty()) {
+              if (!filters.contains(key)) {
+                // If the key is in the filters, we don't want to report it.
+                continue;
+              }
+            }
             if (value instanceof Number) {
                 // If it's a number, we can record the metric as is.
                 individualMetrics.add(new AbstractMap.SimpleEntry<>(key, (Number)value));
@@ -103,10 +112,14 @@ public class DatadogOutputReporter implements Reporter {
                     logger.info("Got value for tags = " + stringValue);
                     this.tags = stringValue.split(";");
                     break;
-                    case "datadog.statsd.statics":
-                        logger.info("Got value for static = " + stringValue);
-                        this.statics = stringValue.split(";");
-                        break;
+                  case "datadog.statsd.statics":
+                    logger.info("Got value for static = " + stringValue);
+                    this.statics = stringValue.split(";");
+                    break;
+                  case "datadog.statsd.filters":
+                    logger.info("Got value for filters = " + stringValue);
+                    this.filters = Arrays.stream(stringValue.split(";")).collect(Collectors.toSet());
+                    break;
                 }
             }
         }
