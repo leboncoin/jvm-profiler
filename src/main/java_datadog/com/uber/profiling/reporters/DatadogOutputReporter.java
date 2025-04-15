@@ -18,6 +18,7 @@ public class DatadogOutputReporter implements Reporter {
     private String hostname = "localhost";
     private int port = 8125;
     private String[] tags = new String[] {};
+    private String[] statics = new String[] {};
 
     @Override
     public void report(String profilerName, Map<String, Object> metrics) {
@@ -45,6 +46,11 @@ public class DatadogOutputReporter implements Reporter {
                     }
                 });
             }
+        }
+
+        for (String staticMetric: statics){
+            String[] keyValue = staticMetric.split(":");
+            individualMetrics.add(new AbstractMap.SimpleEntry<>(keyValue[0], Double.valueOf(keyValue[1])));
         }
 
         for (Map.Entry<String, Number> entry : individualMetrics) {
@@ -97,6 +103,10 @@ public class DatadogOutputReporter implements Reporter {
                     logger.info("Got value for tags = " + stringValue);
                     this.tags = stringValue.split(";");
                     break;
+                    case "datadog.statsd.statics":
+                        logger.info("Got value for static = " + stringValue);
+                        this.statics = stringValue.split(";");
+                        break;
                 }
             }
         }
